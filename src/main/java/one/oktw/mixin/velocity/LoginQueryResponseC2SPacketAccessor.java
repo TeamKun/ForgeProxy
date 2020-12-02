@@ -1,15 +1,15 @@
 package one.oktw.mixin.velocity;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.c2s.login.LoginQueryResponseC2SPacket;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.login.client.CCustomPayloadLoginPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(LoginQueryResponseC2SPacket.class)
+@Mixin(CCustomPayloadLoginPacket.class)
 public interface LoginQueryResponseC2SPacketAccessor {
-    @Accessor
+    @Accessor("transaction")
     int getQueryId();
 
-    @Accessor
-    PacketByteBuf getResponse();
+    @Accessor("payload")
+    PacketBuffer getResponse();
 }

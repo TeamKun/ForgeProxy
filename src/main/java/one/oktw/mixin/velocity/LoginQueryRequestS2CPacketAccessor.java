@@ -1,19 +1,19 @@
 package one.oktw.mixin.velocity;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.login.LoginQueryRequestS2CPacket;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.login.server.SCustomPayloadLoginPacket;
+import net.minecraft.util.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(LoginQueryRequestS2CPacket.class)
+@Mixin(SCustomPayloadLoginPacket.class)
 public interface LoginQueryRequestS2CPacketAccessor {
-    @Accessor
+    @Accessor("transaction")
     void setQueryId(int queryId);
 
-    @Accessor
-    void setChannel(Identifier channel);
+    @Accessor("channel")
+    void setChannel(ResourceLocation channel);
 
     @Accessor
-    void setPayload(PacketByteBuf payload);
+    void setPayload(PacketBuffer payload);
 }

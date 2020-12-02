@@ -1,13 +1,13 @@
 package one.oktw.mixin.bungee;
 
 import com.mojang.authlib.properties.Property;
-import net.minecraft.network.ClientConnection;
+import net.minecraft.network.NetworkManager;
 import one.oktw.interfaces.BungeeClientConnection;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.util.UUID;
 
-@Mixin(ClientConnection.class)
+@Mixin(NetworkManager.class)
 public abstract class ClientConnectionMixin implements BungeeClientConnection {
     private UUID spoofedUUID;
     private Property[] spoofedProfile;

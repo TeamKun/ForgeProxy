@@ -1,14 +1,14 @@
 package one.oktw.mixin.bungee;
 
-import net.minecraft.network.packet.c2s.handshake.HandshakeC2SPacket;
+import net.minecraft.network.handshake.client.CHandshakePacket;
 import one.oktw.FabricProxy;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
-@Mixin(HandshakeC2SPacket.class)
+@Mixin(CHandshakePacket.class)
 public abstract class HandshakeC2SPacketMixin {
-    @ModifyConstant(method = "read", constant = @Constant(intValue = 255))
+    @ModifyConstant(method = "readPacketData", constant = @Constant(intValue = 255))
     private int readStringSize(int i) {
         if (FabricProxy.config.getBungeeCord()) {
             return Short.MAX_VALUE;

@@ -3,13 +3,13 @@ package one.oktw.mixin.bungee;
 import com.google.gson.Gson;
 import com.mojang.authlib.properties.Property;
 import com.mojang.util.UUIDTypeAdapter;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.NetworkState;
-import net.minecraft.network.packet.c2s.handshake.HandshakeC2SPacket;
-import net.minecraft.network.packet.s2c.login.LoginDisconnectS2CPacket;
-import net.minecraft.server.network.ServerHandshakeNetworkHandler;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.ProtocolType;
+import net.minecraft.network.handshake.ServerHandshakeNetHandler;
+import net.minecraft.network.handshake.client.CHandshakePacket;
+import net.minecraft.network.login.server.SDisconnectLoginPacket;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import one.oktw.interfaces.BungeeClientConnection;
 import one.oktw.mixin.ClientConnectionAccessor;
 import org.spongepowered.asm.mixin.Final;
@@ -21,20 +21,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static one.oktw.FabricProxy.config;
 
-@Mixin(ServerHandshakeNetworkHandler.class)
+@Mixin(ServerHandshakeNetHandler.class)
 public class ServerHandshakeNetworkHandlerMixin {
     private static final Gson gson = new Gson();
 
-    @Shadow
+    @Shadow(aliases = "networkManager")
     @Final
-    private ClientConnection connection;
+    private NetworkManager connection;
 
-    @Inject(method = "onHandshake", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;<init>(Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/network/ClientConnection;)V"))
-    private void onProcessHandshakeStart(HandshakeC2SPacket packet, CallbackInfo ci) {
-        if (config.getBungeeCord() && packet.getIntendedState().equals(NetworkState.LOGIN)) {
+    @Inject(method = "processHandshake", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/login/ServerLoginNetHandler;<init>(Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/network/NetworkManager;)V"))
+    private void onProcessHandshakeStart(CHandshakePacket packet, CallbackInfo ci) {
+        if (config.getBungeeCord() && packet.getRequestedState().equals(ProtocolType.LOGIN)) {
             String[] split = ((HandshakeC2SPacketAccessor) packet).getAddress().split("\00");
             if (split.length == 3 || split.length == 4) {
-                ((ClientConnectionAccessor) connection).setAddress(new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) connection.getAddress()).getPort()));
+                ((ClientConnectionAccessor) connection).setAddress(new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) connection.getRemoteAddress()).getPort()));
                 ((BungeeClientConnection) connection).setSpoofedUUID(UUIDTypeAdapter.fromString(split[2]));
 
                 if (split.length == 4) {
@@ -42,9 +42,9 @@ public class ServerHandshakeNetworkHandlerMixin {
                 }
             } else {
                 if (!config.getAllowBypassProxy()) {
-                    Text disconnectMessage = new LiteralText("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
-                    connection.send(new LoginDisconnectS2CPacket(disconnectMessage));
-                    connection.disconnect(disconnectMessage);
+                    ITextComponent disconnectMessage = new StringTextComponent("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
+                    connection.sendPacket(new SDisconnectLoginPacket(disconnectMessage));
+                    connection.closeChannel(disconnectMessage);
                 }
             }
         }

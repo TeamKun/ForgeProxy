@@ -1,11 +1,11 @@
 package one.oktw.mixin.bungee;
 
-import net.minecraft.network.packet.c2s.handshake.HandshakeC2SPacket;
+import net.minecraft.network.handshake.client.CHandshakePacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(HandshakeC2SPacket.class)
+@Mixin(CHandshakePacket.class)
 public interface HandshakeC2SPacketAccessor {
-    @Accessor
+    @Accessor("ip")
     String getAddress();
 }

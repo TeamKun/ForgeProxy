@@ -1,14 +1,14 @@
 package one.oktw.mixin.velocity;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.c2s.login.LoginHelloC2SPacket;
-import net.minecraft.network.packet.c2s.login.LoginQueryResponseC2SPacket;
-import net.minecraft.network.packet.s2c.login.LoginQueryRequestS2CPacket;
-import net.minecraft.server.network.ServerLoginNetworkHandler;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.login.ServerLoginNetHandler;
+import net.minecraft.network.login.client.CEncryptionResponsePacket;
+import net.minecraft.network.login.client.CLoginStartPacket;
+import net.minecraft.network.login.server.SCustomPayloadLoginPacket;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import one.oktw.FabricProxy;
 import one.oktw.VelocityLib;
 import one.oktw.mixin.ClientConnectionAccessor;
@@ -21,56 +21,56 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static io.netty.buffer.Unpooled.EMPTY_BUFFER;
 
-@Mixin(ServerLoginNetworkHandler.class)
+@Mixin(ServerLoginNetHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
     private int velocityLoginQueryId = -1;
     private boolean ready = false;
     private boolean bypassProxy = false;
-    private LoginHelloC2SPacket loginPacket;
+    private CLoginStartPacket loginPacket;
 
-    @Shadow
+    @Shadow(aliases = "networkManager")
     @Final
-    public ClientConnection connection;
+    public NetworkManager connection;
 
-    @Shadow
+    @Shadow(aliases = "loginGameProfile")
     private GameProfile profile;
 
-    @Shadow
+    @Shadow(aliases = "tryAcceptPlayer")
     public abstract void acceptPlayer();
 
-    @Shadow
-    public abstract void disconnect(Text text);
+    @Shadow(aliases = "onDisconnect")
+    public abstract void disconnect(ITextComponent text);
 
-    @Shadow
-    public abstract void onHello(LoginHelloC2SPacket loginHelloC2SPacket);
+    @Shadow(aliases = "processLoginStart")
+    public abstract void onHello(CLoginStartPacket loginHelloC2SPacket);
 
     @SuppressWarnings("ConstantConditions")
-    @Inject(method = "onHello",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/c2s/login/LoginHelloC2SPacket;getProfile()Lcom/mojang/authlib/GameProfile;"),
+    @Inject(method = "processLoginStart",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/login/client/CLoginStartPacket;getProfile()Lcom/mojang/authlib/GameProfile;"),
             cancellable = true)
-    private void sendVelocityPacket(LoginHelloC2SPacket loginHelloC2SPacket, CallbackInfo ci) {
+    private void sendVelocityPacket(CLoginStartPacket loginHelloC2SPacket, CallbackInfo ci) {
         if (FabricProxy.config.getVelocity() && !bypassProxy) {
             if (FabricProxy.config.getAllowBypassProxy()) {
                 loginPacket = loginHelloC2SPacket;
             }
             this.velocityLoginQueryId = java.util.concurrent.ThreadLocalRandom.current().nextInt();
-            LoginQueryRequestS2CPacket packet = new LoginQueryRequestS2CPacket();
+            SCustomPayloadLoginPacket packet = new SCustomPayloadLoginPacket();
             ((LoginQueryRequestS2CPacketAccessor) packet).setQueryId(velocityLoginQueryId);
             ((LoginQueryRequestS2CPacketAccessor) packet).setChannel(VelocityLib.PLAYER_INFO_CHANNEL);
-            ((LoginQueryRequestS2CPacketAccessor) packet).setPayload(new PacketByteBuf(EMPTY_BUFFER));
+            ((LoginQueryRequestS2CPacketAccessor) packet).setPayload(new PacketBuffer(EMPTY_BUFFER));
 
-            connection.send(packet);
+            connection.sendPacket(packet);
             ci.cancel();
         }
     }
 
-    @Inject(method = "onQueryResponse", at = @At("HEAD"), cancellable = true)
-    private void forwardPlayerInfo(LoginQueryResponseC2SPacket packet, CallbackInfo ci) {
+    @Inject(method = "processEncryptionResponse", at = @At("HEAD"), cancellable = true)
+    private void forwardPlayerInfo(CEncryptionResponsePacket packet, CallbackInfo ci) {
         if (FabricProxy.config.getVelocity() && ((LoginQueryResponseC2SPacketAccessor) packet).getQueryId() == velocityLoginQueryId) {
-            PacketByteBuf buf = ((LoginQueryResponseC2SPacketAccessor) packet).getResponse();
+            PacketBuffer buf = ((LoginQueryResponseC2SPacketAccessor) packet).getResponse();
             if (buf == null) {
                 if (!FabricProxy.config.getAllowBypassProxy()) {
-                    disconnect(new LiteralText("This server requires you to connect with Velocity."));
+                    disconnect(new StringTextComponent("This server requires you to connect with Velocity."));
                     return;
                 }
 
@@ -81,11 +81,11 @@ public abstract class ServerLoginNetworkHandlerMixin {
             }
 
             if (!VelocityLib.checkIntegrity(buf)) {
-                disconnect(new LiteralText("Unable to verify player details"));
+                disconnect(new StringTextComponent("Unable to verify player details"));
                 return;
             }
 
-            ((ClientConnectionAccessor) connection).setAddress(new java.net.InetSocketAddress(VelocityLib.readAddress(buf), ((java.net.InetSocketAddress) connection.getAddress()).getPort()));
+            ((ClientConnectionAccessor) connection).setAddress(new java.net.InetSocketAddress(VelocityLib.readAddress(buf), ((java.net.InetSocketAddress) connection.getRemoteAddress()).getPort()));
 
             profile = VelocityLib.createProfile(buf);
 
@@ -94,7 +94,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
         }
     }
 
-    @Inject(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/server/network/ServerLoginNetworkHandler;loginTicks:I"))
+    @Inject(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/network/login/ServerLoginNetHandler;connectionTimer:I"))
     private void login(CallbackInfo ci) {
         if (ready) {
             ready = false;

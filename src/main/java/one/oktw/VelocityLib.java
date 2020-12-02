@@ -3,8 +3,8 @@ package one.oktw;
 import com.google.common.net.InetAddresses;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.ResourceLocation;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -14,10 +14,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class VelocityLib {
-    public static final Identifier PLAYER_INFO_CHANNEL = new Identifier("velocity", "player_info");
+    public static final ResourceLocation PLAYER_INFO_CHANNEL = new ResourceLocation("velocity", "player_info");
     private static final int SUPPORTED_FORWARDING_VERSION = 1;
 
-    public static boolean checkIntegrity(final PacketByteBuf buf) {
+    public static boolean checkIntegrity(final PacketBuffer buf) {
         final byte[] signature = new byte[32];
         buf.readBytes(signature);
 
@@ -43,17 +43,17 @@ public class VelocityLib {
         return true;
     }
 
-    public static InetAddress readAddress(final PacketByteBuf buf) {
+    public static InetAddress readAddress(final PacketBuffer buf) {
         return InetAddresses.forString(buf.readString(Short.MAX_VALUE));
     }
 
-    public static GameProfile createProfile(final PacketByteBuf buf) {
-        final GameProfile profile = new GameProfile(buf.readUuid(), buf.readString(16));
+    public static GameProfile createProfile(final PacketBuffer buf) {
+        final GameProfile profile = new GameProfile(buf.readUniqueId(), buf.readString(16));
         readProperties(buf, profile);
         return profile;
     }
 
-    private static void readProperties(final PacketByteBuf buf, final GameProfile profile) {
+    private static void readProperties(final PacketBuffer buf, final GameProfile profile) {
         final int properties = buf.readVarInt();
         for (int i1 = 0; i1 < properties; i1++) {
             final String name = buf.readString(Short.MAX_VALUE);
