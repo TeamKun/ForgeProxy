@@ -1,7 +1,6 @@
 package one.oktw;
 
-import me.sargunvohra.mcmods.autoconfig1u.AutoConfig;
-import me.sargunvohra.mcmods.autoconfig1u.serializer.Toml4jConfigSerializer;
+import one.oktw.config.ForgeProxyConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.tree.ClassNode;
@@ -11,16 +10,14 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import java.util.List;
 import java.util.Set;
 
-public class FabricProxy implements IMixinConfigPlugin {
-    public static ModConfig config;
+public class ForgeProxyMixin implements IMixinConfigPlugin {
+    public static ForgeProxyConfig config = new ForgeProxyConfig() {
+    };
     private final Logger logger = LogManager.getLogger("FabricProxy");
 
     @Override
     public void onLoad(String mixinPackage) {
-        if (config == null) {
-            AutoConfig.register(ModConfig.class, Toml4jConfigSerializer::new);
-            config = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
-        }
+
     }
 
     @Override

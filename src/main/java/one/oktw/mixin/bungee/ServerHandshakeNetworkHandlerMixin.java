@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static one.oktw.FabricProxy.config;
+import static one.oktw.ForgeProxyMixin.config;
 
 @Mixin(ServerHandshakeNetHandler.class)
 public class ServerHandshakeNetworkHandlerMixin {

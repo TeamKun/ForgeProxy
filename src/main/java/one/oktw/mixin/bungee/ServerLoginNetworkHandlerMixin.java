@@ -5,7 +5,7 @@ import com.mojang.authlib.properties.Property;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.login.ServerLoginNetHandler;
 import net.minecraft.server.MinecraftServer;
-import one.oktw.FabricProxy;
+import one.oktw.ForgeProxyMixin;
 import one.oktw.interfaces.BungeeClientConnection;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerLoginNetHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
     private boolean bypassProxy = false;
-    @Shadow(aliases = "networkManager")
+    @Shadow(aliases = "field_147333_a")
     @Final
     public NetworkManager connection;
     @Shadow(aliases = "loginGameProfile")
@@ -27,7 +27,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
     @Inject(method = "processLoginStart", at = @At(value = "FIELD", opcode = Opcodes.PUTFIELD, target = "Lnet/minecraft/network/login/ServerLoginNetHandler;loginGameProfile:Lcom/mojang/authlib/GameProfile;", shift = At.Shift.AFTER))
     private void initUuid(CallbackInfo ci) {
-        if (FabricProxy.config.getBungeeCord()) {
+        if (ForgeProxyMixin.config.getBungeeCord()) {
             if (((BungeeClientConnection) connection).getSpoofedUUID() == null) {
                 bypassProxy = true;
                 return;
@@ -45,6 +45,6 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
     @Redirect(method = "processLoginStart", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;isServerInOnlineMode()Z"))
     private boolean skipKeyPacket(MinecraftServer minecraftServer) {
-        return (bypassProxy || !FabricProxy.config.getBungeeCord()) && minecraftServer.isServerInOnlineMode();
+        return (bypassProxy || !ForgeProxyMixin.config.getBungeeCord()) && minecraftServer.isServerInOnlineMode();
     }
 }

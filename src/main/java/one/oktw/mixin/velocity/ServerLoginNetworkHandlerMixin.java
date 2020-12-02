@@ -9,7 +9,7 @@ import net.minecraft.network.login.client.CLoginStartPacket;
 import net.minecraft.network.login.server.SCustomPayloadLoginPacket;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import one.oktw.FabricProxy;
+import one.oktw.ForgeProxyMixin;
 import one.oktw.VelocityLib;
 import one.oktw.mixin.ClientConnectionAccessor;
 import org.spongepowered.asm.mixin.Final;
@@ -49,8 +49,8 @@ public abstract class ServerLoginNetworkHandlerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/network/login/client/CLoginStartPacket;getProfile()Lcom/mojang/authlib/GameProfile;"),
             cancellable = true)
     private void sendVelocityPacket(CLoginStartPacket loginHelloC2SPacket, CallbackInfo ci) {
-        if (FabricProxy.config.getVelocity() && !bypassProxy) {
-            if (FabricProxy.config.getAllowBypassProxy()) {
+        if (ForgeProxyMixin.config.getVelocity() && !bypassProxy) {
+            if (ForgeProxyMixin.config.getAllowBypassProxy()) {
                 loginPacket = loginHelloC2SPacket;
             }
             this.velocityLoginQueryId = java.util.concurrent.ThreadLocalRandom.current().nextInt();
@@ -66,10 +66,10 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
     @Inject(method = "processEncryptionResponse", at = @At("HEAD"), cancellable = true)
     private void forwardPlayerInfo(CEncryptionResponsePacket packet, CallbackInfo ci) {
-        if (FabricProxy.config.getVelocity() && ((LoginQueryResponseC2SPacketAccessor) packet).getQueryId() == velocityLoginQueryId) {
+        if (ForgeProxyMixin.config.getVelocity() && ((LoginQueryResponseC2SPacketAccessor) packet).getQueryId() == velocityLoginQueryId) {
             PacketBuffer buf = ((LoginQueryResponseC2SPacketAccessor) packet).getResponse();
             if (buf == null) {
-                if (!FabricProxy.config.getAllowBypassProxy()) {
+                if (!ForgeProxyMixin.config.getAllowBypassProxy()) {
                     disconnect(new StringTextComponent("This server requires you to connect with Velocity."));
                     return;
                 }
