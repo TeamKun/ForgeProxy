@@ -25,26 +25,26 @@ import static one.oktw.ForgeProxyMixin.config;
 public class ServerHandshakeNetworkHandlerMixin {
     private static final Gson gson = new Gson();
 
-    @Shadow(aliases = "networkManager")
+    @Shadow
     @Final
-    private NetworkManager connection;
+    private NetworkManager networkManager;
 
     @Inject(method = "processHandshake", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/login/ServerLoginNetHandler;<init>(Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/network/NetworkManager;)V"))
     private void onProcessHandshakeStart(CHandshakePacket packet, CallbackInfo ci) {
         if (config.getBungeeCord() && packet.getRequestedState().equals(ProtocolType.LOGIN)) {
             String[] split = ((HandshakeC2SPacketAccessor) packet).getAddress().split("\00");
             if (split.length == 3 || split.length == 4) {
-                ((ClientConnectionAccessor) connection).setAddress(new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) connection.getRemoteAddress()).getPort()));
-                ((BungeeClientConnection) connection).setSpoofedUUID(UUIDTypeAdapter.fromString(split[2]));
+                ((ClientConnectionAccessor) networkManager).setAddress(new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) networkManager.getRemoteAddress()).getPort()));
+                ((BungeeClientConnection) networkManager).setSpoofedUUID(UUIDTypeAdapter.fromString(split[2]));
 
                 if (split.length == 4) {
-                    ((BungeeClientConnection) connection).setSpoofedProfile(gson.fromJson(split[3], Property[].class));
+                    ((BungeeClientConnection) networkManager).setSpoofedProfile(gson.fromJson(split[3], Property[].class));
                 }
             } else {
                 if (!config.getAllowBypassProxy()) {
                     ITextComponent disconnectMessage = new StringTextComponent("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
-                    connection.sendPacket(new SDisconnectLoginPacket(disconnectMessage));
-                    connection.closeChannel(disconnectMessage);
+                    networkManager.sendPacket(new SDisconnectLoginPacket(disconnectMessage));
+                    networkManager.closeChannel(disconnectMessage);
                 }
             }
         }

@@ -28,21 +28,21 @@ public abstract class ServerLoginNetworkHandlerMixin {
     private boolean bypassProxy = false;
     private CLoginStartPacket loginPacket;
 
-    @Shadow(aliases = "networkManager")
+    @Shadow
     @Final
-    public NetworkManager connection;
+    public NetworkManager networkManager;
 
-    @Shadow(aliases = "loginGameProfile")
-    private GameProfile profile;
+    @Shadow
+    private GameProfile loginGameProfile;
 
-    @Shadow(aliases = "tryAcceptPlayer")
-    public abstract void acceptPlayer();
+    @Shadow
+    public abstract void tryAcceptPlayer();
 
-    @Shadow(aliases = "onDisconnect")
-    public abstract void disconnect(ITextComponent text);
+    @Shadow
+    public abstract void onDisconnect(ITextComponent text);
 
-    @Shadow(aliases = "processLoginStart")
-    public abstract void onHello(CLoginStartPacket loginHelloC2SPacket);
+    @Shadow
+    public abstract void processLoginStart(CLoginStartPacket loginHelloC2SPacket);
 
     @SuppressWarnings("ConstantConditions")
     @Inject(method = "processLoginStart",
@@ -59,7 +59,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
             ((LoginQueryRequestS2CPacketAccessor) packet).setChannel(VelocityLib.PLAYER_INFO_CHANNEL);
             ((LoginQueryRequestS2CPacketAccessor) packet).setPayload(new PacketBuffer(EMPTY_BUFFER));
 
-            connection.sendPacket(packet);
+            networkManager.sendPacket(packet);
             ci.cancel();
         }
     }
@@ -70,24 +70,24 @@ public abstract class ServerLoginNetworkHandlerMixin {
             PacketBuffer buf = ((LoginQueryResponseC2SPacketAccessor) packet).getResponse();
             if (buf == null) {
                 if (!ForgeProxyMixin.config.getAllowBypassProxy()) {
-                    disconnect(new StringTextComponent("This server requires you to connect with Velocity."));
+                    onDisconnect(new StringTextComponent("This server requires you to connect with Velocity."));
                     return;
                 }
 
                 bypassProxy = true;
-                onHello(loginPacket);
+                processLoginStart(loginPacket);
                 ci.cancel();
                 return;
             }
 
             if (!VelocityLib.checkIntegrity(buf)) {
-                disconnect(new StringTextComponent("Unable to verify player details"));
+                onDisconnect(new StringTextComponent("Unable to verify player details"));
                 return;
             }
 
-            ((ClientConnectionAccessor) connection).setAddress(new java.net.InetSocketAddress(VelocityLib.readAddress(buf), ((java.net.InetSocketAddress) connection.getRemoteAddress()).getPort()));
+            ((ClientConnectionAccessor) networkManager).setAddress(new java.net.InetSocketAddress(VelocityLib.readAddress(buf), ((java.net.InetSocketAddress) networkManager.getRemoteAddress()).getPort()));
 
-            profile = VelocityLib.createProfile(buf);
+            loginGameProfile = VelocityLib.createProfile(buf);
 
             ready = true;
             ci.cancel();
@@ -98,7 +98,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
     private void login(CallbackInfo ci) {
         if (ready) {
             ready = false;
-            acceptPlayer();
+            tryAcceptPlayer();
         }
     }
 }
