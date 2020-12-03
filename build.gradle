@@ -41,7 +41,11 @@ minecraft {
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
 
             // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
+            //property 'forge.logging.console.level', 'debug'
+
+            args '--mixin', 'common.mixins.json'
+            args '--mixin', 'bungee.mixins.json'
+            args '--mixin', 'velocity.mixins.json'
 
             mods {
                 forgeproxy {
@@ -57,7 +61,11 @@ minecraft {
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
 
             // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
+            //property 'forge.logging.console.level', 'debug'
+
+            args '--mixin', 'common.mixins.json'
+            args '--mixin', 'bungee.mixins.json'
+            args '--mixin', 'velocity.mixins.json'
 
             mods {
                 forgeproxy {
@@ -73,9 +81,12 @@ minecraft {
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
 
             // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
+            //property 'forge.logging.console.level', 'debug'
 
             args '--mod', 'forgeproxy', '--all', '--output', file('src/generated/resources/')
+            args '--mixin', 'common.mixins.json'
+            args '--mixin', 'bungee.mixins.json'
+            args '--mixin', 'velocity.mixins.json'
 
             mods {
                 forgeproxy {
@@ -84,6 +95,10 @@ minecraft {
             }
         }
     }
+}
+
+mixin {
+    add sourceSets.main, "mixins.forgeproxy.refmap.json"
 }
 
 dependencies {

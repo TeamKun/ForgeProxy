@@ -13,7 +13,7 @@ import java.util.Set;
 public class ForgeProxyMixin implements IMixinConfigPlugin {
     public static ForgeProxyConfig config = new ForgeProxyConfig() {
     };
-    private final Logger logger = LogManager.getLogger("FabricProxy");
+    private final Logger logger = LogManager.getLogger("ForgeProxy");
 
     @Override
     public void onLoad(String mixinPackage) {

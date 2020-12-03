@@ -1,5 +1,6 @@
 {
   "required": true,
+  "minVersion": "0.8.2",
   "package": "one.oktw.mixin.bungee",
   "compatibilityLevel": "JAVA_8",
   "plugin": "one.oktw.ForgeProxyMixin",

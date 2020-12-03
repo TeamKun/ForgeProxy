@@ -11,7 +11,7 @@ public class ForgeProxy {
 
     public ForgeProxy() {
         ForgeProxyConfigImpl config = new ForgeProxyConfigImpl();
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, config.spec);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, config.spec);
         ForgeProxyMixin.config = config;
     }
 
