@@ -1,16 +1,15 @@
-package one.oktw.config;
+package one.oktw;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
-public class ForgeProxyConfigImpl extends ForgeProxyConfig {
+public class ForgeProxyConfig {
     private final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    private final ForgeConfigSpec.ConfigValue<Boolean> BungeeCord = BUILDER.define("BungeeCord", super.getVelocity());
-    private final ForgeConfigSpec.ConfigValue<Boolean> Velocity = BUILDER.define("Velocity", super.getBungeeCord());
-    private final ForgeConfigSpec.ConfigValue<Boolean> allowBypassProxy = BUILDER.define("allowBypassProxy", super.getAllowBypassProxy());
-    private final ForgeConfigSpec.ConfigValue<String> secret = BUILDER.comment("Velocity proxy secret").define("allowBypassProxy", super.getSecret());
+    private final ForgeConfigSpec.ConfigValue<Boolean> BungeeCord = BUILDER.define("BungeeCord", false);
+    private final ForgeConfigSpec.ConfigValue<Boolean> Velocity = BUILDER.define("Velocity", false);
+    private final ForgeConfigSpec.ConfigValue<Boolean> allowBypassProxy = BUILDER.define("allowBypassProxy", false);
+    private final ForgeConfigSpec.ConfigValue<String> secret = BUILDER.comment("Velocity proxy secret").define("secret", "");
     public final ForgeConfigSpec spec = BUILDER.build();
 
-    @Override
     public Boolean getVelocity() {
         String env = System.getenv("FABRIC_PROXY_VELOCITY");
         if (env == null) {
@@ -20,7 +19,6 @@ public class ForgeProxyConfigImpl extends ForgeProxyConfig {
         }
     }
 
-    @Override
     public Boolean getBungeeCord() {
         String env = System.getenv("FABRIC_PROXY_BUNGEECORD");
         if (env == null) {
@@ -30,7 +28,6 @@ public class ForgeProxyConfigImpl extends ForgeProxyConfig {
         }
     }
 
-    @Override
     public String getSecret() {
         String env = System.getenv("FABRIC_PROXY_SECRET");
         if (env == null) {
@@ -40,7 +37,6 @@ public class ForgeProxyConfigImpl extends ForgeProxyConfig {
         }
     }
 
-    @Override
     public Boolean getAllowBypassProxy() {
         String env = System.getenv("FABRIC_PROXY_ALLOW_BYPASS_PROXY");
         if (env == null) {
