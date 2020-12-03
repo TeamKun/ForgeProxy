@@ -63,6 +63,7 @@ minecraft {
             // Recommended logging level for the console
             //property 'forge.logging.console.level', 'debug'
 
+            args '--nogui'
             args '--mixin', 'common.mixins.json'
             args '--mixin', 'bungee.mixins.json'
             args '--mixin', 'velocity.mixins.json'
