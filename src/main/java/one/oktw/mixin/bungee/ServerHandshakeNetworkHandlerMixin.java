@@ -33,7 +33,7 @@ public class ServerHandshakeNetworkHandlerMixin {
     @Inject(method = "processHandshake", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/login/ServerLoginNetHandler;<init>(Lnet/minecraft/server/MinecraftServer;Lnet/minecraft/network/NetworkManager;)V"))
     private void onProcessHandshakeStart(CHandshakePacket packet, CallbackInfo ci) {
         if (config.getBungeeCord() && packet.getRequestedState().equals(ProtocolType.LOGIN)) {
-            String[] split = ((HandshakeC2SPacketData) packet).getPayload().split("\00");
+            String[] split = ((HandshakeC2SPacketData) packet).getRaw().split("\00");
             if (split.length == 3 || split.length == 4) {
                 ((ClientConnectionAccessor) networkManager).setAddress(new java.net.InetSocketAddress(split[1], ((java.net.InetSocketAddress) networkManager.getRemoteAddress()).getPort()));
                 ((BungeeClientConnection) networkManager).setSpoofedUUID(UUIDTypeAdapter.fromString(split[2]));

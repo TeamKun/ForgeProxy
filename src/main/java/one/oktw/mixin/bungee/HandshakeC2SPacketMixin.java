@@ -10,21 +10,21 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(CHandshakePacket.class)
 public abstract class HandshakeC2SPacketMixin implements HandshakeC2SPacketData {
-    private String payload;
+    private String raw;
 
     @Override
-    public String getPayload() {
-        return this.payload;
+    public String getRaw() {
+        return this.raw;
     }
 
     @Redirect(method = "readPacketData", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/PacketBuffer;readString(I)Ljava/lang/String;"))
     private String onReadPacketData(PacketBuffer buf, int i) {
         if (!ForgeProxyMixin.config.getBungeeCord()) {
-            return payload = buf.readString(255);
+            return raw = buf.readString(255);
         }
 
-        payload = buf.readString(Short.MAX_VALUE);
+        raw = buf.readString(Short.MAX_VALUE);
 
-        return payload.split("\0")[0] + "\0" + "FML2";
+        return raw.split("\0")[0] + "\0" + "FML2" + "\0";
     }
 }
